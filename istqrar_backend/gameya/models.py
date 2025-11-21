@@ -15,6 +15,7 @@ class Gameya(models.Model):
     description = models.TextField(blank=True, null=True)
     creator = models.ForeignKey(User, on_delete=models.CASCADE, related_name='created_gameyas')
     contribution_amount = models.DecimalField(max_digits=10, decimal_places=2)
+    max_members = models.PositiveIntegerField(blank=True, null=True)
     total_members = models.PositiveIntegerField(default=0)
     duration_months = models.PositiveIntegerField()
     current_round = models.PositiveIntegerField(default=1)

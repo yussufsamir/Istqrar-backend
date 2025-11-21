@@ -2,9 +2,13 @@ from rest_framework import serializers
 from .models import Gameya, Membership, Contribution
 
 class GameyaSerializer(serializers.ModelSerializer):
+    creator_username = serializers.CharField(source='creator.username', read_only=True)
+
     class Meta:
         model = Gameya
         fields = '__all__'
+        read_only_fields = ['id', 'creator', 'creator_username', 'total_members', 'current_round', 'created_at']
+
 
 
 class MembershipSerializer(serializers.ModelSerializer):
