@@ -7,13 +7,22 @@ class MentorSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = Mentor
-        fields = '__all__'
+        fields = ['id', 'user', 'username', 'expertise', 'bio']
+        read_only_fields = ['user']
 
 
 class GrantApplicationSerializer(serializers.ModelSerializer):
     applicant_username = serializers.CharField(source='applicant.username', read_only=True)
-    mentor_username = serializers.CharField(source='mentor.user.username', read_only=True, default=None)
+    mentor_username = serializers.CharField(source='mentor.user.username', read_only=True)
 
     class Meta:
         model = GrantApplication
-        fields = '__all__'
+        fields = [
+            'id',
+            'applicant', 'applicant_username',
+            'mentor', 'mentor_username',
+            'project_title', 'description',
+            'amount_requested',
+            'status', 'submitted_at'
+        ]
+        read_only_fields = ['applicant', 'status', 'submitted_at']

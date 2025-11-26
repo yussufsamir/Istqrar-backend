@@ -1,6 +1,9 @@
 # users/models.py
 from django.contrib.auth.models import AbstractUser
 from django.db import models
+from django.db.models.signals import post_save
+from django.dispatch import receiver
+
 
 class User(AbstractUser):
     ROLE_CHOICES = [
@@ -35,3 +38,9 @@ class TrustScore(models.Model):
 
     def __str__(self):
         return f"{self.user.username} - {self.score}"
+
+@receiver(post_save, sender=User)
+def create_user_related_models(sender, instance, created, **kwargs):
+    if created:
+        Profile.objects.create(user=instance)
+        TrustScore.objects.create(user=instance, score=50.00)  

@@ -4,7 +4,7 @@ from rest_framework.response import Response
 from rest_framework.decorators import action
 from decimal import Decimal
 from django.db import transaction
-
+from users.utils import update_trust_score
 from .models import Gameya, Membership, Contribution
 from .serializers import GameyaSerializer, MembershipSerializer, ContributionSerializer
 from wallet.models import Wallet, Transaction
@@ -61,38 +61,77 @@ class GameyaViewSet(viewsets.ModelViewSet):
         membership.save()
         gameya.total_members=gameya.memberships.filter(is_active=True).count()
         gameya.save()
+        update_trust_score(request.user, -10)
         return Response({'detail':'You have left the Gameya.'},status=status.HTTP_200_OK)
     
-    @action(detail=True, methods=['post'], permission_classes=[permissions.IsAuthenticated])
-    @action(detail=True, methods=['post'], permission_classes=[permissions.IsAuthenticated])
-    def contribute(self,request,pk=None):
-        gameya=self.get_object()
+        @action(detail=True, methods=['post'], permission_classes=[permissions.IsAuthenticated])
+        def contribute(self, request, pk=None):
+            gameya = self.get_object()
 
-        try:
-            membership=Membership.objects.get(user=request.user,gameya=gameya,is_active=True)
-        except Membership.DoesNotExist:
+            # Check active membership
+            try:
+                membership = Membership.objects.get(user=request.user, gameya=gameya, is_active=True)
+            except Membership.DoesNotExist:
+                return Response(
+                    {"detail": "You are not an active member of this Gameya."},
+                    status=status.HTTP_400_BAD_REQUEST
+                )
+
+            wallet, _ = Wallet.objects.get_or_create(user=request.user)
+
+            amount = gameya.contribution_amount
+            month = request.data.get("month", gameya.current_round)
+
+            # Prevent duplicate contribution
+            if Contribution.objects.filter(
+                membership=membership,
+                month=month,
+                confirmed=True
+            ).exists():
+                return Response(
+                    {"detail": "You have already contributed for this month."},
+                    status=status.HTTP_400_BAD_REQUEST
+                )
+
+            # Check wallet balance
+            if wallet.balance < amount:
+                return Response(
+                    {"detail": "Insufficient wallet balance."},
+                    status=status.HTTP_400_BAD_REQUEST
+                )
+
+            # Atomic transaction block
+            with transaction.atomic():
+
+                # Deduct funds
+                wallet.balance = wallet.balance - amount
+                wallet.save()
+
+                # Log transaction
+                Transaction.objects.create(
+                    wallet=wallet,
+                    transaction_type="CONTRIBUTION",
+                    amount=amount,
+                    reference_id=f"GAMEYA-{gameya.id}-ROUND-{month}",
+                    description=f"Contribution for Gameya {gameya.name}, month {month}",
+                )
+
+                # Create contribution record
+                contribution = Contribution.objects.create(
+                    membership=membership,
+                    amount=amount,
+                    month=month,
+                    confirmed=True,
+                )
+
+            # Increase trust score for successful payment
+            update_trust_score(request.user, +5)
+
             return Response(
-                {'detail':'You are not an active member of this Gameya.'},
-                status=status.HTTP_400_BAD_REQUEST
-            )
-            
-        wallet, _ = Wallet.objects.get_or_create(user=request.user)
-
-        amount = gameya.contribution_amount
-        month = request.data.get('month', gameya.current_round)
-
-        # ✔ Prevent duplicate contributions for the same month
-        if Contribution.objects.filter(
-            membership=membership,
-            month=month,
-            confirmed=True
-        ).exists():
-            return Response(
-                {"detail": "You have already contributed for this month."},
-                status=status.HTTP_400_BAD_REQUEST
+                ContributionSerializer(contribution).data,
+                status=status.HTTP_201_CREATED
             )
 
-    
     @action(detail=True, methods=['post'], permission_classes=[permissions.IsAuthenticated])
     def payout(self, request, pk=None):
         gameya = self.get_object()
@@ -158,4 +197,3 @@ class ContributionViewSet(viewsets.ReadOnlyModelViewSet):
     
 
 
-    
