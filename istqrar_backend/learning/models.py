@@ -32,3 +32,25 @@ class Certificate(models.Model):
 
     def __str__(self):
         return f"Certificate: {self.user.username} - {self.course.title}"
+
+class Enrollment(models.Model):
+    user = models.ForeignKey(User, on_delete=models.CASCADE, related_name='enrollments')
+    course = models.ForeignKey(Course, on_delete=models.CASCADE, related_name='enrollments')
+    enrolled_at = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        unique_together = ('user', 'course')
+
+    def __str__(self):
+        return f"{self.user.username} enrolled in {self.course.title}"
+
+class CompletedLesson(models.Model):
+    user = models.ForeignKey(User, on_delete=models.CASCADE, related_name='completed_lessons')
+    lesson = models.ForeignKey(Lesson, on_delete=models.CASCADE, related_name='completed_by')
+    completed_at = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        unique_together = ('user', 'lesson')  # prevent duplicate completion
+
+    def __str__(self):
+        return f"{self.user.username} completed {self.lesson.title}"
