@@ -15,6 +15,7 @@ class User(AbstractUser):
     role = models.CharField(max_length=20, choices=ROLE_CHOICES, default='USER')
     phone_number = models.CharField(max_length=20, blank=True, null=True)
     national_id = models.CharField(max_length=20, blank=True, null=True)
+    national_id_image = models.ImageField(upload_to='national_ids/', blank=True, null=True)
     verified = models.BooleanField(default=False)
 
     def __str__(self):

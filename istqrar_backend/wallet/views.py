@@ -28,8 +28,8 @@ class TransactionViewSet(viewsets.ReadOnlyModelViewSet):
 
     def get_queryset(self):
         wallet, _ = Wallet.objects.get_or_create(user=self.request.user)
-        return Transaction.objects.filter(wallet=wallet).order_by('-timestamp')
-    
+        return Transaction.objects.filter(wallet=wallet).order_by('-created_at')
+
 class DepositView(viewsets.ViewSet):
     permission_classes = [permissions.IsAuthenticated]
 

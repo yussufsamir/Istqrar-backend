@@ -1,8 +1,7 @@
 from rest_framework.routers import DefaultRouter
-from .views import MentorViewSet, GrantApplicationViewSet
+from .views import ArticleViewSet
 
 router = DefaultRouter()
-router.register('mentors', MentorViewSet)
-router.register('grants', GrantApplicationViewSet)
+router.register(r'articles', ArticleViewSet, basename='startup-articles')
 
 urlpatterns = router.urls

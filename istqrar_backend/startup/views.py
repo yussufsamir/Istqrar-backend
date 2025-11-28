@@ -1,7 +1,7 @@
 from django.shortcuts import render
 from rest_framework import viewsets, permissions
-from .models import GrantApplication, Mentor
-from .serializers import GrantApplicationSerializer, MentorSerializer
+from .models import GrantApplication, Mentor , Article
+from .serializers import GrantApplicationSerializer, MentorSerializer, ArticleSerializer
 from rest_framework.decorators import action
 from rest_framework.response import Response
 
@@ -67,3 +67,16 @@ class GrantApplicationViewSet(viewsets.ModelViewSet):
         application.status = 'REJECTED'
         application.save()
         return Response({'detail': 'Application rejected.'}, status=200)
+    
+class ArticleViewSet(viewsets.ModelViewSet):
+    queryset = Article.objects.all().order_by('-created_at')
+    serializer_class = ArticleSerializer
+
+    def perform_create(self, serializer):
+        serializer.save(author=self.request.user)
+
+    def get_permissions(self):
+        # Only admin can create/edit
+        if self.action in ["create", "update", "partial_update", "destroy"]:
+            return [permissions.IsAdminUser()]
+        return [permissions.AllowAny()]

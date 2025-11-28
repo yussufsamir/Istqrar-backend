@@ -166,3 +166,7 @@ CORS_ALLOW_ALL_ORIGINS = True  # ✅ allows all origins (development mode)
 #     "http://localhost:3000",
 #     "https://your-frontend-domain.com",
 # ]
+
+
+MEDIA_URL = '/media/'
+MEDIA_ROOT = BASE_DIR / 'media'

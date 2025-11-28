@@ -19,15 +19,13 @@ class LoanSerializer(serializers.ModelSerializer):
         model = Loan
         fields = '__all__'
         read_only_fields = [
-            'id', 'user', 'status', 'created_at', 'approved_at',
+            'id', 'user', 'status', 'created_at', 'approved_at'
         ]
 
     def get_total_repaid(self, obj):
-        total = sum((r.amount for r in obj.repayments.filter(is_paid=True)), Decimal('0'))
-        return total
+        return sum((r.amount for r in obj.repayments.filter(is_paid=True)), Decimal('0'))
 
     def get_total_due(self, obj):
-        # simple flat interest: total_due = amount + amount * (interest_rate / 100)
         amount = obj.amount
         interest = amount * (obj.interest_rate / Decimal('100'))
         return amount + interest

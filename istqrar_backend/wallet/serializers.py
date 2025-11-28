@@ -12,5 +12,11 @@ class WalletSerializer(serializers.ModelSerializer):
 class TransactionSerializer(serializers.ModelSerializer):
     class Meta:
         model = Transaction
-        fields = ['id', 'wallet', 'transaction_type', 'amount', 'reference_id', 'description', 'timestamp']
-        read_only_fields = ['wallet', 'timestamp']
+        fields = [
+            'id',
+            'transaction_type',
+            'amount',
+            'created_at',     
+            'reference_id',
+            'description',
+        ]

@@ -1,6 +1,7 @@
 # gameya/models.py
 from django.db import models
 from django.conf import settings
+from datetime import timedelta
 
 User = settings.AUTH_USER_MODEL
 
@@ -21,6 +22,13 @@ class Gameya(models.Model):
     current_round = models.PositiveIntegerField(default=1)
     status = models.CharField(max_length=20, choices=STATUS_CHOICES, default='ACTIVE')
     created_at = models.DateTimeField(auto_now_add=True)
+    start_date = models.DateField(auto_now_add=True)
+    next_payout_date = models.DateField(null=True, blank=True)
+
+    def get_next_payout_date(self):
+        return self.start_date + timedelta(days=30 * (self.current_round - 1))
+
+
 
     def __str__(self):
         return f"{self.name} ({self.status})"

@@ -21,21 +21,31 @@ class UserSerializer(serializers.ModelSerializer):
 
 
 class RegisterSerializer(serializers.ModelSerializer):
+    national_id_image = serializers.ImageField(required=False)
+
     class Meta:
         model = User
-        fields = ['username', 'email', 'password','role']
-        extra_kwargs = {'password': {'write_only': True},
-                        'role': {'default': 'USER'}}
+        fields = ['username', 'email', 'password', 'national_id_image']
+        extra_kwargs = {
+            'password': {'write_only': True}
+        }
 
     def create(self, validated_data):
-        password = validated_data.pop('password')
-        user = User.objects.create(**validated_data)
-        user.password = make_password(password)
+        national_id_image = validated_data.pop('national_id_image', None)
+        
+        user = User(
+            username=validated_data['username'],
+            email=validated_data['email']
+        )
+        user.password = make_password(validated_data['password'])
+
+        if national_id_image:
+            user.national_id_image = national_id_image
+
         user.save()
 
-        # Auto-create Mentor profile if role is mentor
-        if user.role == "MENTOR":
-            Mentor.objects.create(user=user, expertise="", bio="")
+        # Create profile ONLY IF it does not already exist
+        Profile.objects.get_or_create(user=user)
 
         return user
 

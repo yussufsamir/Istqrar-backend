@@ -1,7 +1,20 @@
 from rest_framework import serializers
 from .models import Mentor, GrantApplication
 
+from .models import Article
 
+class ArticleSerializer(serializers.ModelSerializer):
+    author_name = serializers.CharField(source="author.username", read_only=True)
+
+    class Meta:
+        model = Article
+        fields = [
+            "id", "title", "content", "thumbnail",
+            "created_at", "author", "author_name"
+        ]
+        read_only_fields = ["author", "created_at"]
+
+        
 class MentorSerializer(serializers.ModelSerializer):
     username = serializers.CharField(source='user.username', read_only=True)
 

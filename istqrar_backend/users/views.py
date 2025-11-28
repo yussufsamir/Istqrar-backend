@@ -11,10 +11,14 @@ from .serializers import (
 from .models import User, Profile, TrustScore
 from rest_framework.permissions import AllowAny
 
+from rest_framework.parsers import MultiPartParser, FormParser
+
 class RegisterView(generics.CreateAPIView):
     queryset = User.objects.all()
     serializer_class = RegisterSerializer
     permission_classes = [AllowAny]
+    parser_classes = [MultiPartParser, FormParser]
+
 
 
 
